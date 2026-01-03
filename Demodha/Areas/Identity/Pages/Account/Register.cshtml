@@ -1,67 +1,372 @@
 ﻿@page
 @model RegisterModel
 @{
-    ViewData["Title"] = "Register";
+    Layout = "/Views/Shared/_AuthLayout.cshtml";
+    ViewData["Title"] = "Create account";
 }
 
-<h1>@ViewData["Title"]</h1>
+@section Styles {
+    <style>
+        .auth-wrap {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            padding: 24px 0;
+        }
 
-<div class="row">
-    <div class="col-md-4">
-        <form id="registerForm" asp-route-returnUrl="@Model.ReturnUrl" method="post">
-            <h2>Create a new account.</h2>
-            <hr />
-            <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
-            <div class="form-floating mb-3">
-                <input asp-for="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="name@example.com" />
-                <label asp-for="Input.Email">Email</label>
-                <span asp-validation-for="Input.Email" class="text-danger"></span>
-            </div>
-            <div class="form-floating mb-3">
-                <input asp-for="Input.Password" class="form-control" autocomplete="new-password" aria-required="true" placeholder="password" />
-                <label asp-for="Input.Password">Password</label>
-                <span asp-validation-for="Input.Password" class="text-danger"></span>
-            </div>
-            <div class="form-floating mb-3">
-                <input asp-for="Input.ConfirmPassword" class="form-control" autocomplete="new-password" aria-required="true" placeholder="password" />
-                <label asp-for="Input.ConfirmPassword">Confirm Password</label>
-                <span asp-validation-for="Input.ConfirmPassword" class="text-danger"></span>
-            </div>
-            <button id="registerSubmit" type="submit" class="w-100 btn btn-lg btn-primary">Register</button>
-        </form>
-    </div>
-    <div class="col-md-6 col-md-offset-2">
-        <section>
-            <h3>Use another service to register.</h3>
-            <hr />
-            @{
-                if ((Model.ExternalLogins?.Count ?? 0) == 0)
-                {
-                    <div>
-                        <p>
-                            There are no external authentication services configured. See this <a href="https://go.microsoft.com/fwlink/?LinkID=532715">article
-                            about setting up this ASP.NET application to support logging in via external services</a>.
-                        </p>
-                    </div>
-                }
-                else
-                {
-                    <form id="external-account" asp-page="./ExternalLogin" asp-route-returnUrl="@Model.ReturnUrl" method="post" class="form-horizontal">
-                        <div>
-                            <p>
-                                @foreach (var provider in Model.ExternalLogins!)
-                                {
-                                    <button type="submit" class="btn btn-primary" name="provider" value="@provider.Name" title="Log in using your @provider.DisplayName account">@provider.DisplayName</button>
-                                }
-                            </p>
-                        </div>
-                    </form>
-                }
+        .auth-shell {
+            border-radius: 18px;
+            overflow: hidden;
+            box-shadow: 0 18px 60px rgba(15, 23, 42, .18);
+            border: 1px solid rgba(255,255,255,.10);
+            background: rgba(255,255,255,.95);
+            backdrop-filter: blur(10px);
+        }
+
+        .auth-left {
+            position: relative;
+            padding: 34px;
+            color: #fff;
+            background: radial-gradient(1200px 600px at 20% 20%, rgba(255,255,255,.25) 0%, rgba(255,255,255,0) 55%), linear-gradient(135deg, #0f172a 0%, #1d4ed8 55%, #06b6d4 100%);
+            min-height: 100%;
+        }
+
+            .auth-left::after {
+                content: "";
+                position: absolute;
+                inset: 0;
+                background: radial-gradient(700px 300px at 70% 60%, rgba(255,255,255,.18) 0%, rgba(255,255,255,0) 60%), radial-gradient(500px 250px at 40% 80%, rgba(255,255,255,.12) 0%, rgba(255,255,255,0) 60%);
+                pointer-events: none;
             }
-        </section>
+
+        .brand-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            border-radius: 999px;
+            background: rgba(255,255,255,.14);
+            border: 1px solid rgba(255,255,255,.25);
+            backdrop-filter: blur(8px);
+            position: relative;
+            z-index: 1;
+        }
+
+        .brand-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: rgba(255,255,255,.95);
+            box-shadow: 0 0 0 4px rgba(255,255,255,.18);
+        }
+
+        .left-title {
+            font-weight: 900;
+            font-size: 1.75rem;
+            letter-spacing: -0.03em;
+            margin-top: 16px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .small-muted {
+            color: rgba(255,255,255,.88);
+            position: relative;
+            z-index: 1;
+        }
+
+        .left-points {
+            margin-top: 18px;
+            position: relative;
+            z-index: 1;
+            padding-left: 0;
+            list-style: none;
+        }
+
+            .left-points li {
+                display: flex;
+                gap: 10px;
+                margin-bottom: 10px;
+                color: rgba(255,255,255,.92);
+            }
+
+        .tick {
+            width: 22px;
+            height: 22px;
+            border-radius: 8px;
+            background: rgba(255,255,255,.16);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: .85rem;
+        }
+
+        .auth-right {
+            padding: 34px;
+            background: transparent;
+        }
+
+        .auth-title {
+            font-size: 1.6rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            color: #0f172a;
+            margin: 0;
+        }
+
+        .auth-sub {
+            color: #64748b;
+            margin-top: 8px;
+            margin-bottom: 0;
+        }
+
+        .field-label {
+            font-size: .85rem;
+            font-weight: 700;
+            color: #334155;
+            margin-bottom: 6px;
+        }
+
+        .input-group-modern .form-control {
+            border-radius: 12px;
+            padding: 12px 12px;
+            border: 1px solid rgba(15, 23, 42, .12);
+            box-shadow: none;
+        }
+
+            .input-group-modern .form-control:focus {
+                border-color: rgba(29, 78, 216, .55);
+                box-shadow: 0 0 0 4px rgba(29, 78, 216, .12);
+            }
+
+        .input-icon {
+            width: 42px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(15, 23, 42, .12);
+            border-right: none;
+            border-radius: 12px 0 0 12px;
+            background: #f8fafc;
+            color: #475569;
+            font-size: .95rem;
+        }
+
+        .input-group-modern .form-control {
+            border-left: none;
+            border-radius: 0 12px 12px 0;
+        }
+
+        .btn-primary-modern {
+            border-radius: 12px;
+            padding: 12px 14px;
+            font-weight: 800;
+            border: 0;
+            background: linear-gradient(135deg, #1d4ed8 0%, #06b6d4 100%);
+            box-shadow: 0 10px 24px rgba(29, 78, 216, .22);
+        }
+
+            .btn-primary-modern:hover {
+                filter: brightness(.98);
+                box-shadow: 0 14px 28px rgba(29, 78, 216, .28);
+            }
+
+        .mini-link a {
+            color: #1d4ed8;
+            text-decoration: none;
+            font-weight: 700;
+        }
+
+            .mini-link a:hover {
+                text-decoration: underline;
+            }
+
+        @@media (max-width: 991.98px) {
+            .auth-left {
+                display: none;
+            }
+
+            .auth-right {
+                padding: 28px 22px;
+            }
+        }
+    </style>
+}
+
+<div class="container auth-wrap">
+    <div class="row w-100 justify-content-center">
+        <div class="col-12 col-lg-10 col-xl-9">
+            <div class="auth-shell">
+                <div class="row g-0">
+
+                    <!-- LEFT PANEL -->
+                    <div class="col-lg-5">
+                        <div class="auth-left h-100">
+                            <div class="brand-badge">
+                                <span class="brand-dot"></span>
+                                <span style="font-weight:900; letter-spacing:.02em;">DHA</span>
+                            </div>
+
+                            <div class="left-title">Create your account</div>
+                            <p class="small-muted mt-2 mb-0">
+                                Register using your CNIC and File Number.
+                            </p>
+
+                            <ul class="left-points">
+                                <li><span class="tick">✓</span> Secure onboarding</li>
+                                <li><span class="tick">✓</span> Unique CNIC + File validation</li>
+                                <li><span class="tick">✓</span> Modern, responsive UI</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- RIGHT FORM -->
+                    <div class="col-lg-7">
+                        <div class="auth-right">
+                            <h1 class="auth-title">Register</h1>
+                            <p class="auth-sub">Fill the details to create a new account.</p>
+
+                            <form id="registerForm" method="post" asp-route-returnUrl="@Model.ReturnUrl" class="mt-4">
+                                <div asp-validation-summary="ModelOnly" class="text-danger mb-3" role="alert"></div>
+
+                                <!-- EMAIL -->
+                                <div class="mb-3">
+                                    <div class="field-label">Email</div>
+                                    <div class="input-group input-group-modern">
+                                        <span class="input-icon">✉️</span>
+                                        <input asp-for="Input.Email"
+                                               class="form-control"
+                                               autocomplete="username"
+                                               aria-required="true"
+                                               placeholder="name@example.com" />
+                                    </div>
+                                    <span asp-validation-for="Input.Email" class="text-danger"></span>
+                                </div>
+
+                                <!-- CNIC -->
+                                <div class="mb-3">
+                                    <div class="field-label">CNIC</div>
+                                    <div class="input-group input-group-modern">
+                                        <span class="input-icon">🪪</span>
+                                        <input asp-for="Input.User_CNIC"
+                                               class="form-control"
+                                               autocomplete="off"
+                                               aria-required="true"
+                                               placeholder="xxxxx-xxxxxxx-x" />
+                                    </div>
+                                    <span asp-validation-for="Input.User_CNIC" class="text-danger"></span>
+                                </div>
+
+                                <!-- FILE NUMBER -->
+                                <div class="mb-3">
+                                    <div class="field-label">File Number</div>
+                                    <div class="input-group input-group-modern">
+                                        <span class="input-icon">📁</span>
+                                        <input asp-for="Input.File_Number"
+                                               class="form-control"
+                                               autocomplete="off"
+                                               aria-required="true"
+                                               placeholder="Enter File Number" />
+                                    </div>
+                                    <span asp-validation-for="Input.File_Number" class="text-danger"></span>
+                                </div>
+
+                                <!-- PASSWORD -->
+                                <div class="mb-3">
+                                    <div class="field-label">Password</div>
+                                    <div class="input-group input-group-modern">
+                                        <span class="input-icon">🔒</span>
+                                        <input asp-for="Input.Password"
+                                               id="passwordBox"
+                                               class="form-control"
+                                               autocomplete="new-password"
+                                               aria-required="true"
+                                               placeholder="Enter password"
+                                               type="password" />
+                                    </div>
+                                    <span asp-validation-for="Input.Password" class="text-danger"></span>
+                                </div>
+
+                                <!-- CONFIRM PASSWORD -->
+                                <div class="mb-2">
+                                    <div class="field-label">Confirm Password</div>
+                                    <div class="input-group input-group-modern">
+                                        <span class="input-icon">🔁</span>
+                                        <input asp-for="Input.ConfirmPassword"
+                                               id="confirmBox"
+                                               class="form-control"
+                                               autocomplete="new-password"
+                                               aria-required="true"
+                                               placeholder="Confirm password"
+                                               type="password" />
+                                    </div>
+                                    <span asp-validation-for="Input.ConfirmPassword" class="text-danger"></span>
+
+                                    <div class="mt-2 text-end">
+                                        <button type="button"
+                                                class="btn btn-sm btn-outline-secondary"
+                                                style="border-radius:10px;"
+                                                onclick="togglePasswords()">
+                                            Show/Hide
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <button id="registerSubmit" type="submit" class="w-100 btn btn-primary-modern mt-3">
+                                    Create account
+                                </button>
+
+                                <div class="mt-3 mini-link text-center">
+                                    <span class="text-muted">Already have an account?</span>
+                                    <a asp-page="./Login" asp-route-returnUrl="@Model.ReturnUrl">Sign in</a>
+                                </div>
+                            </form>
+
+                            @* OPTIONAL external logins section - keep if you need *@
+                            @if ((Model.ExternalLogins?.Count ?? 0) > 0)
+                            {
+                                <hr class="my-4" />
+                                <div>
+                                    <div class="fw-bold mb-2">Use another service</div>
+                                    <form id="external-account" asp-page="./ExternalLogin"
+                                          asp-route-returnUrl="@Model.ReturnUrl"
+                                          method="post" class="form-horizontal">
+                                        <div class="d-flex flex-wrap gap-2">
+                                            @foreach (var provider in Model.ExternalLogins!)
+                                            {
+                                                <button type="submit" class="btn btn-outline-primary"
+                                                        name="provider" value="@provider.Name"
+                                                        title="Register using your @provider.DisplayName account"
+                                                        style="border-radius:12px;">
+                                                    @provider.DisplayName
+                                                </button>
+                                            }
+                                        </div>
+                                    </form>
+                                </div>
+                            }
+
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="text-center mt-3" style="color: rgba(255,255,255,.75); font-size:.9rem;">
+                © @DateTime.Now.Year DHA. All rights reserved.
+            </div>
+        </div>
     </div>
 </div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        function togglePasswords() {
+            var p = document.getElementById("passwordBox");
+            var c = document.getElementById("confirmBox");
+            if (p) p.type = (p.type === "password") ? "text" : "password";
+            if (c) c.type = (c.type === "password") ? "text" : "password";
+        }
+    </script>
 }
