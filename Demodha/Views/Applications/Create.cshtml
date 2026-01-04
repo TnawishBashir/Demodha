@@ -1,0 +1,175 @@
+﻿using Microsoft.AspNetCore.Http;
+@using Demodha.ViewModels
+@model NdcApplicationVM
+@{
+    ViewData["Title"] = "Create NDC Application";
+}
+
+@if (TempData["success"] != null)
+{
+    <div class="alert alert-success rounded-4">@TempData["success"]</div>
+}
+
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+    <div>
+        <h3 class="mb-1 fw-bold">Create NDC Application</h3>
+        <div class="text-muted">Step-1 (Owner/Seller): Fill form + upload documents, then submit to Dealer.</div>
+    </div>
+    <a class="btn btn-outline-secondary" href="/Owner/Applications">Back</a>
+</div>
+
+<form asp-action="Create" asp-controller="Applications" method="post" enctype="multipart/form-data" class="row g-3">
+    @Html.AntiForgeryToken()
+
+    <div class="col-12">
+        <div class="border rounded-4 p-3 bg-white">
+            <div class="fw-bold mb-2">Plot / File Details</div>
+
+            <div class="row g-3">
+                <div class="col-12 col-md-4">
+                    <label class="form-label">Plot/File No *</label>
+                    <input asp-for="PlotOrFileNo" class="form-control" placeholder="e.g. 12 or File-1234" />
+                    <span asp-validation-for="PlotOrFileNo" class="text-danger small"></span>
+                </div>
+
+                <div class="col-12 col-md-4">
+                    <label class="form-label">Block *</label>
+                    <input asp-for="Block" class="form-control" placeholder="e.g. A" />
+                    <span asp-validation-for="Block" class="text-danger small"></span>
+                </div>
+
+                <div class="col-12 col-md-4">
+                    <label class="form-label">Sector/Phase *</label>
+                    <input asp-for="SectorOrPhase" class="form-control" placeholder="e.g. Phase 6" />
+                    <span asp-validation-for="SectorOrPhase" class="text-danger small"></span>
+                </div>
+
+                <div class="col-12 col-md-6">
+                    <label class="form-label">Scheme *</label>
+                    <input asp-for="SocietyOrScheme" class="form-control" />
+                    <span asp-validation-for="SocietyOrScheme" class="text-danger small"></span>
+                </div>
+
+                <div class="col-12 col-md-6">
+                    <label class="form-label">Select Dealer *</label>
+                    <select asp-for="DealerUserId" asp-items="Model.DealerOptions" class="form-select"></select>
+                    <span asp-validation-for="DealerUserId" class="text-danger small"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12">
+        <div class="border rounded-4 p-3 bg-white">
+            <div class="fw-bold mb-2">Owner / Seller Details</div>
+
+            <div class="row g-3">
+                <div class="col-12 col-md-6">
+                    <label class="form-label">Seller Name *</label>
+                    <input asp-for="SellerName" class="form-control" placeholder="Full name" />
+                    <span asp-validation-for="SellerName" class="text-danger small"></span>
+                </div>
+
+                <div class="col-12 col-md-3">
+                    <label class="form-label">Seller CNIC *</label>
+                    <input asp-for="SellerCnic" class="form-control" placeholder="35201-xxxxxxx-x" />
+                    <span asp-validation-for="SellerCnic" class="text-danger small"></span>
+                </div>
+
+                <div class="col-12 col-md-3">
+                    <label class="form-label">Phone *</label>
+                    <input asp-for="SellerPhone" class="form-control" placeholder="03xx-xxxxxxx" />
+                    <span asp-validation-for="SellerPhone" class="text-danger small"></span>
+                </div>
+
+                <div class="col-12 col-md-6">
+                    <label class="form-label">Email (optional)</label>
+                    <input asp-for="SellerEmail" class="form-control" placeholder="name@email.com" />
+                    <span asp-validation-for="SellerEmail" class="text-danger small"></span>
+                </div>
+
+                <div class="col-12 col-md-6">
+                    <label class="form-label">Address (optional)</label>
+                    <input asp-for="SellerAddress" class="form-control" placeholder="House/Street/City" />
+                    <span asp-validation-for="SellerAddress" class="text-danger small"></span>
+                </div>
+
+                <div class="col-12">
+                    <label class="form-label">Remarks (optional)</label>
+                    <textarea asp-for="Remarks" class="form-control" rows="2" placeholder="Any note for dealer/desk..."></textarea>
+                    <span asp-validation-for="Remarks" class="text-danger small"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12">
+        <div class="border rounded-4 p-3 bg-white">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <div class="fw-bold">Purchaser Details (Optional)</div>
+                <span class="badge bg-secondary">Dealer will attach consent forms</span>
+            </div>
+
+            <div class="row g-3">
+                <div class="col-12 col-md-6">
+                    <label class="form-label">Purchaser Name</label>
+                    <input asp-for="PurchaserName" class="form-control" placeholder="Optional" />
+                </div>
+                <div class="col-12 col-md-6">
+                    <label class="form-label">Purchaser CNIC</label>
+                    <input asp-for="PurchaserCnic" class="form-control" placeholder="Optional" />
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12">
+        <div class="border rounded-4 p-3 bg-white">
+            <div class="fw-bold mb-2">Upload Documents (Step-1)</div>
+            <div class="text-muted small mb-3">
+                Required: CNIC Copy, 2 Photos, Application to Secretary DHAG (as per process).
+            </div>
+
+            <div class="row g-3">
+                <div class="col-12 col-md-6">
+                    <label class="form-label">Owner CNIC Copy</label>
+                    <input asp-for="OwnerCnicCopy" type="file" class="form-control" />
+                </div>
+
+                <div class="col-12 col-md-6">
+                    <label class="form-label">Application to Secretary DHAG</label>
+                    <input asp-for="ApplicationToSecretary" type="file" class="form-control" />
+                </div>
+
+                <div class="col-12 col-md-6">
+                    <label class="form-label">Photograph 1</label>
+                    <input asp-for="Photo1" type="file" class="form-control" />
+                </div>
+
+                <div class="col-12 col-md-6">
+                    <label class="form-label">Photograph 2</label>
+                    <input asp-for="Photo2" type="file" class="form-control" />
+                </div>
+            </div>
+
+            <div class="alert alert-warning rounded-4 mt-3 mb-0">
+                Dealer will attach: Payment Challan + Seller Consent + Purchaser Consent (Step-2).
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12">
+        <div class="d-flex flex-wrap gap-2 justify-content-end">
+            <button type="submit" name="actionType" value="save" class="btn btn-outline-secondary">
+                Save Draft
+            </button>
+            <button type="submit" name="actionType" value="submit" class="btn btn-primary">
+                Submit to Dealer
+            </button>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -1,0 +1,89 @@
+﻿@model Demodha.ViewModels.NdcUploadDocsVM
+@{
+    ViewData["Title"] = "Upload Missing Documents";
+    Layout = "_Layout.Owner";
+}
+
+@if (TempData["success"] != null)
+{
+    <div class="alert alert-success rounded-4">@TempData["success"]</div>
+}
+
+<div class="d-flex align-items-center justify-content-between mb-3">
+    <div>
+        <h3 class="mb-1 fw-bold">Upload Missing Documents</h3>
+        <div class="text-muted">Application: <b>@Model.AppNo</b></div>
+    </div>
+    <a class="btn btn-outline-secondary" href="/Owner/Applications/View/@Model.ApplicationId">Back</a>
+</div>
+
+<form method="post" enctype="multipart/form-data">
+    @Html.AntiForgeryToken()
+
+    <div class="border rounded-4 p-3 bg-white mb-3">
+        <div class="fw-bold mb-2">Step-1 Required Documents</div>
+
+        <div class="row g-3">
+            <div class="col-12 col-md-6">
+                <label class="form-label">Owner CNIC Copy</label>
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <span class="text-muted small">Status:</span>
+                    <span class="badge bg-@(Model.HasCnic ? "success" : "secondary")">
+                        @(Model.HasCnic ? "Uploaded" : "Missing")
+                    </span>
+                </div>
+                <input asp-for="OwnerCnicCopy" type="file" class="form-control" />
+                <span asp-validation-for="OwnerCnicCopy" class="text-danger small"></span>
+            </div>
+
+            <div class="col-12 col-md-6">
+                <label class="form-label">Application to Secretary DHAG</label>
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <span class="text-muted small">Status:</span>
+                    <span class="badge bg-@(Model.HasApplicationToSecretary ? "success" : "secondary")">
+                        @(Model.HasApplicationToSecretary ? "Uploaded" : "Missing")
+                    </span>
+                </div>
+                <input asp-for="ApplicationToSecretary" type="file" class="form-control" />
+                <span asp-validation-for="ApplicationToSecretary" class="text-danger small"></span>
+            </div>
+
+            <div class="col-12 col-md-6">
+                <label class="form-label">Photograph 1</label>
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <span class="text-muted small">Status:</span>
+                    <span class="badge bg-@(Model.HasPhoto1 ? "success" : "secondary")">
+                        @(Model.HasPhoto1 ? "Uploaded" : "Missing")
+                    </span>
+                </div>
+                <input asp-for="Photo1" type="file" class="form-control" />
+                <span asp-validation-for="Photo1" class="text-danger small"></span>
+            </div>
+
+            <div class="col-12 col-md-6">
+                <label class="form-label">Photograph 2</label>
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <span class="text-muted small">Status:</span>
+                    <span class="badge bg-@(Model.HasPhoto2 ? "success" : "secondary")">
+                        @(Model.HasPhoto2 ? "Uploaded" : "Missing")
+                    </span>
+                </div>
+                <input asp-for="Photo2" type="file" class="form-control" />
+                <span asp-validation-for="Photo2" class="text-danger small"></span>
+            </div>
+        </div>
+
+        <div class="alert alert-info rounded-4 mt-3 mb-0">
+            Tip: You can upload only the missing files. Already uploaded files will be replaced if you select a new one.
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-end gap-2">
+        <a class="btn btn-outline-secondary" href="/Owner/Applications/View/@Model.ApplicationId">Cancel</a>
+        <button type="submit" class="btn btn-primary">Upload</button>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

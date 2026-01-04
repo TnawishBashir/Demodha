@@ -1,0 +1,124 @@
+﻿@* @model Demodha.ViewModels.OwnerDashboardVM
+@{
+    ViewData["Title"] = "Owner Dashboard";
+    Layout = "_Layout.Owner"; // aapke screenshot me yahi use ho raha
+}
+
+<div class="d-flex align-items-center justify-content-between mb-3">
+    <div>
+        <h3 class="mb-1 fw-bold">Owner Dashboard</h3>
+        <div class="text-muted">Track your NDC applications status and progress.</div>
+    </div>
+
+    <a class="btn btn-primary" href="/Owner/Applications/Create">
+        + Create New Application
+    </a>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-12 col-md-2">
+        <div class="border rounded-4 p-3 bg-white">
+            <div class="text-muted small">Draft</div>
+            <div class="fs-3 fw-bold">@Model.DraftCount</div>
+        </div>
+    </div>
+    <div class="col-12 col-md-2">
+        <div class="border rounded-4 p-3 bg-white">
+            <div class="text-muted small">Submitted</div>
+            <div class="fs-3 fw-bold">@Model.SubmittedCount</div>
+        </div>
+    </div>
+    <div class="col-12 col-md-2">
+        <div class="border rounded-4 p-3 bg-white">
+            <div class="text-muted small">Returned</div>
+            <div class="fs-3 fw-bold">@Model.ReturnedCount</div>
+        </div>
+    </div>
+    <div class="col-12 col-md-3">
+        <div class="border rounded-4 p-3 bg-white">
+            <div class="text-muted small">Approved</div>
+            <div class="fs-3 fw-bold">@Model.ApprovedCount</div>
+        </div>
+    </div>
+    <div class="col-12 col-md-3">
+        <div class="border rounded-4 p-3 bg-white">
+            <div class="text-muted small">Completed</div>
+            <div class="fs-3 fw-bold">@Model.CompletedCount</div>
+        </div>
+    </div>
+</div>
+
+<div class="border rounded-4 p-3 bg-white">
+    <div class="d-flex align-items-center justify-content-between mb-2">
+        <div class="fw-bold">Recent Applications</div>
+        <a class="btn btn-sm btn-outline-secondary" href="/Owner/Applications">View All</a>
+    </div>
+
+    @if (Model.RecentApplications == null || !Model.RecentApplications.Any())
+    {
+        <div class="text-muted">No applications found yet.</div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table align-middle">
+                <thead>
+                    <tr class="text-muted small">
+                        <th>Application</th>
+                        <th>Scheme</th>
+                        <th>Status</th>
+                        <th>Stage</th>
+                        <th class="text-end">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var a in Model.RecentApplications)
+                    {
+                        <tr>
+                            <td>
+                                <div class="fw-semibold">@a.PlotOrFileNo</div>
+                                <div class="text-muted small">@a.Block • @a.SectorOrPhase</div>
+                            </td>
+                            <td>@a.SocietyOrScheme</td>
+                            <td>
+                                @Html.Raw(GetStatusBadge(a.CurrentStatus))
+                            </td>
+                            <td class="text-muted">
+                                @a.CurrentStage
+                            </td>
+                            <td class="text-end">
+                                <a class="btn btn-sm btn-outline-primary" href="/Owner/Applications/View/@a.Id">View</a>
+
+                                @if (a.CurrentStatus == Demodha.Models.NdcStatus.Draft || a.CurrentStatus == Demodha.Models.NdcStatus.Returned)
+                                {
+                                    <a class="btn btn-sm btn-outline-secondary" href="/Owner/Applications/Edit/@a.Id">Edit</a>
+                                    <a class="btn btn-sm btn-primary" href="/Owner/Applications/Submit/@a.Id">Submit</a>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+@functions {
+    private string GetStatusBadge(Demodha.Models.NdcStatus status)
+    {
+        var (text, cls) = status switch
+        {
+            Demodha.Models.NdcStatus.Draft => ("Draft", "secondary"),
+            Demodha.Models.NdcStatus.Submitted => ("Submitted", "primary"),
+            Demodha.Models.NdcStatus.UnderReview => ("Under Review", "info"),
+            Demodha.Models.NdcStatus.Returned => ("Returned", "warning"),
+            Demodha.Models.NdcStatus.Approved => ("Approved", "success"),
+            Demodha.Models.NdcStatus.Completed => ("Completed", "success"),
+            Demodha.Models.NdcStatus.Rejected => ("Rejected", "danger"),
+            _ => ("Unknown", "dark")
+        };
+
+        return $"<span class='badge bg-{cls} rounded-pill'>{text}</span>";
+    }
+}
+ *@

@@ -1,0 +1,112 @@
+﻿@model Demodha.ViewModels.NdcApplicationViewVM
+@{
+    ViewData["Title"] = "View NDC Application";
+    Layout = "_Layout.Owner";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h3 class="fw-bold mb-1">NDC Application</h3>
+        <div class="text-muted">@Model.AppNo</div>
+    </div>
+    <a class="btn btn-outline-secondary" href="/Home/OwnerDashboard">Back to Dashboard</a>
+</div>
+
+<div class="row g-3">
+
+    <div class="col-12 col-lg-6">
+        <div class="border rounded-4 p-3 bg-white">
+            <div class="fw-bold mb-2">Plot / File Details</div>
+            <div><b>Plot/File:</b> @Model.PlotOrFileNo</div>
+            <div><b>Block:</b> @Model.Block</div>
+            <div><b>Sector/Phase:</b> @Model.SectorOrPhase</div>
+            <div><b>Scheme:</b> @Model.SocietyOrScheme</div>
+        </div>
+    </div>
+
+    <div class="col-12 col-lg-6">
+        <div class="border rounded-4 p-3 bg-white">
+            <div class="fw-bold mb-2">Current Status</div>
+            <div><b>Status:</b> @Model.CurrentStatus</div>
+            <div><b>Stage:</b> @Model.CurrentStage</div>
+        </div>
+    </div>
+
+    <div class="col-12 col-lg-6">
+        <div class="border rounded-4 p-3 bg-white">
+            <div class="fw-bold mb-2">Seller Details</div>
+            <div>@Model.Seller.FullName</div>
+            <div>CNIC: @Model.Seller.CNIC</div>
+            <div>Phone: @Model.Seller.Phone</div>
+        </div>
+    </div>
+
+    <div class="col-12 col-lg-6">
+        <div class="border rounded-4 p-3 bg-white">
+            <div class="fw-bold mb-2">Purchaser Details</div>
+            @if (Model.Purchaser == null)
+            {
+                <div class="text-muted">Not provided</div>
+            }
+            else
+            {
+                <div>@Model.Purchaser.FullName</div>
+                <div>CNIC: @Model.Purchaser.CNIC</div>
+            }
+        </div>
+    </div>
+
+    <div class="col-12">
+        <div class="border rounded-4 p-3 bg-white">
+            <div class="fw-bold mb-2">Uploaded Documents</div>
+
+            @if (!Model.Documents.Any())
+            {
+                <div class="text-muted">No documents uploaded yet.</div>
+            }
+            else
+            {
+                <ul class="list-group list-group-flush">
+                    @foreach (var d in Model.Documents)
+                    {
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>@d.DocType</span>
+                            <a href="@d.FilePath" target="_blank" class="btn btn-sm btn-outline-primary">
+                                View
+                            </a>
+                        </li>
+                    }
+                </ul>
+            }
+        </div>
+    </div>
+
+    <div class="col-12 col-lg-6">
+        <div class="border rounded-4 p-3 bg-white">
+            <div class="fw-bold mb-2">Step-1 Checklist</div>
+            @foreach (var t in Model.Tasks.Where(x => x.TaskDefinition.Stage == NdcStage.Owner))
+            {
+                <div class="d-flex justify-content-between border-bottom py-2">
+                    <div>@t.TaskDefinition.Title</div>
+                    <span class="badge bg-@(t.IsCompleted ? "success" : "secondary")">
+                        @(t.IsCompleted ? "Done" : "Pending")
+                    </span>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="col-12 col-lg-6">
+        <div class="border rounded-4 p-3 bg-white">
+            <div class="fw-bold mb-2">Application Timeline</div>
+            @foreach (var h in Model.Timeline)
+            {
+                <div class="border-bottom py-2">
+                    <div class="small text-muted">@h.ActionOn.ToLocalTime()</div>
+                    <div>@h.Remarks</div>
+                </div>
+            }
+        </div>
+    </div>
+
+</div>

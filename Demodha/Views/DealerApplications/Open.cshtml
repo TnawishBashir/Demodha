@@ -1,0 +1,122 @@
+﻿@model Demodha.ViewModels.DealerApplicationStep2VM
+@{
+    ViewData["Title"] = "Process Application (Step-2)";
+    Layout = "_Layout.Dealer";
+
+    string yesNo(bool b) => b ? "Done" : "Pending";
+    string badge(bool b) => b ? "bg-success" : "bg-secondary";
+}
+
+@if (TempData["success"] != null)
+{
+    <div class="alert alert-success rounded-4">@TempData["success"]</div>
+}
+
+<div class="d-flex align-items-center justify-content-between mb-3">
+    <div>
+        <h3 class="mb-1 fw-bold">Process Application (Step-2)</h3>
+        <div class="text-muted">Attach Challan + Consent Forms, then submit to Transfer Desk.</div>
+        <div class="small text-muted mt-1">
+            <span class="fw-semibold">@Model.AppNo</span> — @Model.Plot
+        </div>
+    </div>
+    <div class="d-flex gap-2">
+        <a class="btn btn-outline-secondary" href="/Home/DealerDashboard">Back</a>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-12 col-lg-8">
+        <div class="border rounded-4 p-3 bg-white">
+            <div class="fw-bold mb-2">Owner Info</div>
+            <div class="mb-3">
+                <div class="text-muted small">Owner / Seller</div>
+                <div class="fw-semibold">@Model.OwnerName</div>
+            </div>
+
+            <div class="fw-bold mb-2">Step-2 Documents</div>
+
+            <div class="d-flex flex-wrap gap-2 mb-3">
+                <span class="badge @badge(Model.HasChallan)">Challan: @yesNo(Model.HasChallan)</span>
+                <span class="badge @badge(Model.HasSellerConsent)">Seller Consent: @yesNo(Model.HasSellerConsent)</span>
+                @if (Model.HasPurchaser)
+                {
+                    <span class="badge @badge(Model.HasPurchaserConsent)">Purchaser Consent: @yesNo(Model.HasPurchaserConsent)</span>
+                }
+            </div>
+
+            <form method="post" enctype="multipart/form-data" action="/Dealer/Applications/Open">
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="ApplicationId" />
+
+                <div class="row g-3">
+                    <div class="col-12 col-md-6">
+                        <label class="form-label">Payment Challan Form</label>
+                        <input asp-for="PaymentChallan" type="file" class="form-control" />
+                        <span asp-validation-for="PaymentChallan" class="text-danger small"></span>
+                    </div>
+
+                    <div class="col-12 col-md-6">
+                        <label class="form-label">Seller Consent Form</label>
+                        <input asp-for="SellerConsent" type="file" class="form-control" />
+                        <span asp-validation-for="SellerConsent" class="text-danger small"></span>
+                    </div>
+
+                    @if (Model.HasPurchaser)
+                    {
+                        <div class="col-12 col-md-6">
+                            <label class="form-label">Purchaser Consent Form</label>
+                            <input asp-for="PurchaserConsent" type="file" class="form-control" />
+                            <span asp-validation-for="PurchaserConsent" class="text-danger small"></span>
+                        </div>
+                    }
+                </div>
+
+                <div class="text-danger small mt-2">
+                    @Html.ValidationSummary(false)
+                </div>
+
+                <div class="d-flex justify-content-end gap-2 mt-3">
+                    <button type="submit" name="actionType" value="save" class="btn btn-outline-secondary">
+                        Save Draft
+                    </button>
+
+                    <button type="submit" name="actionType" value="submit" class="btn btn-primary">
+                        Submit to Transfer Desk
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="col-12 col-lg-4">
+        <div class="border rounded-4 p-3 bg-white">
+            <div class="fw-bold mb-2">Step-2 Checklist</div>
+
+            <div class="py-2 border-bottom">
+                <div class="fw-semibold">1) Review owner application</div>
+                <div class="text-muted small">Verify Owner docs, plot/file details.</div>
+            </div>
+            <div class="py-2 border-bottom">
+                <div class="fw-semibold">2) Attach Payment Challan</div>
+                <div class="text-muted small">Upload challan form.</div>
+            </div>
+            <div class="py-2 border-bottom">
+                <div class="fw-semibold">3) Attach Seller Consent</div>
+                <div class="text-muted small">Upload signed consent form.</div>
+            </div>
+            <div class="py-2 border-bottom">
+                <div class="fw-semibold">4) Attach Purchaser Consent</div>
+                <div class="text-muted small">Upload signed consent form.</div>
+            </div>
+            <div class="py-2">
+                <div class="fw-semibold">5) Submit to Transfer Desk</div>
+                <div class="text-muted small">Once all docs complete.</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -1,0 +1,251 @@
+﻿@using System
+@using System.Linq
+
+@{
+    var deptName = (ViewBag.Department as string) ?? "Plans";
+    ViewData["Title"] = $"{deptName} Directorate Dashboard";
+
+    var kpis = new
+    {
+        Inbox = 6,
+        UnderReview = 2,
+        ApprovedToday = 3,
+        ReturnedToday = 1,
+        PendingInfo = 2
+    };
+
+    var cases = new[]
+    {
+        new { AppNo="NDC-2026-00018", Owner="Ali Raza", Plot="Plot 88, Block C", Received="Jan 02, 2026", Status="New", Badge="info", HasAllDocs=true, Days=1, Notes="Verify basic forms + completion certificate." },
+        new { AppNo="NDC-2026-00021", Owner="Mubashar Khan", Plot="Plot 12, Block A", Received="Jan 03, 2026", Status="Under Review", Badge="primary", HasAllDocs=false, Days=0, Notes="Missing doc: Purchaser Consent (Dealer)." },
+        new { AppNo="NDC-2025-00990", Owner="Saad Ahmed", Plot="Plot 110, Block D", Received="Dec 27, 2025", Status="Under Review", Badge="primary", HasAllDocs=true, Days=7, Notes="Check record compliance & completion." },
+        new { AppNo="NDC-2025-00912", Owner="Imran Khan", Plot="Plot 31, Block A", Received="Dec 20, 2025", Status="Approved", Badge="success", HasAllDocs=true, Days=14, Notes="Clearance approved and sent to Transfer Desk." },
+        new { AppNo="NDC-2026-00011", Owner="Hassan Shah", Plot="Plot 05, Block B", Received="Dec 29, 2025", Status="Returned", Badge="warning", HasAllDocs=true, Days=5, Notes="Objection: Provide updated completion certificate." },
+    };
+
+    var finance = new[]
+    {
+        new { AppNo="NDC-2026-00018", Outstanding=25000, Challan="CH-90881", Payment="Pending", Badge="warning" },
+        new { AppNo="NDC-2025-00912", Outstanding=0, Challan="—", Payment="Cleared", Badge="success" },
+        new { AppNo="NDC-2025-00990", Outstanding=12000, Challan="CH-90710", Payment="Receipt Uploaded", Badge="info" },
+    };
+
+    var activity = new[]
+    {
+        new { When="Today 6:10 PM", Text=$"{deptName}: Opened NDC-2026-00021 for review." },
+        new { When="Today 4:40 PM", Text=$"{deptName}: Approved NDC-2026-00018 and sent clearance to Transfer Desk." },
+        new { When="Yesterday 1:20 PM", Text=$"{deptName}: Returned NDC-2026-00011 with objection note." },
+    };
+
+    bool isFinance = deptName.Equals("Finance", StringComparison.OrdinalIgnoreCase);
+
+    string deptRuleText = deptName switch
+    {
+        "Plans" => "Plans: Check basic forms/documents and completion certificate. Return to Owner if issues, otherwise approve to Transfer Desk.",
+        "Legal" => "Legal: Verify legal requirements and paperwork. Return for corrections if any issue, otherwise approve to Transfer Desk.",
+        "Land" => "Land: Verify land-related documents and completion certificate. Return for missing/incorrect docs, otherwise approve.",
+        "BC" => "BC: Building Control checks and compliance verification. Return objections if any, otherwise approve to Transfer Desk.",
+        "Finance" => "Finance: Check outstanding dues. If amount due, generate challan, wait for receipt, then send clearance to Transfer Desk.",
+        _ => "Directorate: Review and either approve or return with objections."
+    };
+}
+
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+    <div>
+        <h3 class="mb-1 fw-bold">@deptName Directorate Dashboard</h3>
+        <div class="text-muted">Step-4: Clearance processing — approve to Transfer Desk or return with objections.</div>
+    </div>
+
+    <div class="d-flex gap-2">
+        <a class="btn btn-primary" href="/Directorate/Inbox?dept=@deptName">Inbox</a>
+        <a class="btn btn-outline-secondary" href="/Directorate/Approved?dept=@deptName">Approved</a>
+    </div>
+</div>
+
+<div class="row g-3 mb-3">
+    <div class="col-6 col-lg-2">
+        <div class="border rounded-4 p-3 bg-white">
+            <div class="text-muted">Inbox</div>
+            <div class="fs-3 fw-bold">@kpis.Inbox</div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-2">
+        <div class="border rounded-4 p-3 bg-white">
+            <div class="text-muted">Under Review</div>
+            <div class="fs-3 fw-bold">@kpis.UnderReview</div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-2">
+        <div class="border rounded-4 p-3 bg-white">
+            <div class="text-muted">Approved Today</div>
+            <div class="fs-3 fw-bold">@kpis.ApprovedToday</div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-2">
+        <div class="border rounded-4 p-3 bg-white">
+            <div class="text-muted">Returned Today</div>
+            <div class="fs-3 fw-bold">@kpis.ReturnedToday</div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-4">
+        <div class="border rounded-4 p-3 bg-white">
+            <div class="text-muted">Pending Info / Docs</div>
+            <div class="fs-3 fw-bold">@kpis.PendingInfo</div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-12 col-lg-8">
+        <div class="border rounded-4 p-3 bg-white mb-3">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <div class="fw-bold">Clearance Queue (Transfer Desk → @deptName)</div>
+                <span class="badge bg-secondary">@deptName</span>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                    <thead>
+                        <tr class="text-muted">
+                            <th>App #</th>
+                            <th>Owner</th>
+                            <th>Plot / File</th>
+                            <th>Status</th>
+                            <th>Age</th>
+                            <th class="text-end">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var a in cases)
+                        {
+                            <tr>
+                                <td class="fw-semibold">@a.AppNo</td>
+                                <td>@a.Owner <div class="text-muted small">Received: @a.Received</div></td>
+                                <td>@a.Plot</td>
+                                <td>
+                                    <span class="badge bg-@a.Badge">@a.Status</span>
+                                    @if (!a.HasAllDocs)
+                                    {
+                                        <div class="text-danger small mt-1">Missing / incomplete docs</div>
+                                    }
+                                    <div class="text-muted small mt-1">@a.Notes</div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-light text-dark">@a.Days day(s)</span>
+                                </td>
+                                <td class="text-end">
+                                    <a class="btn btn-sm btn-outline-primary" href="#">Review</a>
+
+                                    <a class="btn btn-sm btn-success ms-1" href="#">Approve</a>
+                                    <a class="btn btn-sm btn-outline-danger ms-1" href="#">Return</a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="text-muted small mt-2">
+                @deptRuleText
+            </div>
+        </div>
+
+        @if (isFinance)
+        {
+            <div class="border rounded-4 p-3 bg-white">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <div class="fw-bold">Finance Dues & Challan Status</div>
+                    <a class="text-decoration-none" href="#">Manage Challans</a>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table align-middle mb-0">
+                        <thead>
+                            <tr class="text-muted">
+                                <th>App #</th>
+                                <th>Outstanding</th>
+                                <th>Challan</th>
+                                <th>Payment</th>
+                                <th class="text-end">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var f in finance)
+                            {
+                                <tr>
+                                    <td class="fw-semibold">@f.AppNo</td>
+                                    <td>PKR @f.Outstanding</td>
+                                    <td>@f.Challan</td>
+                                    <td><span class="badge bg-@f.Badge">@f.Payment</span></td>
+                                    <td class="text-end">
+                                        <a class="btn btn-sm btn-outline-primary" href="#">Generate Challan</a>
+                                        <a class="btn btn-sm btn-success ms-1" href="#">Mark Cleared</a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="text-muted small mt-2">
+                    Finance flow: Check outstanding → generate challan → wait for receipt → clearance report to Transfer Desk.
+                </div>
+            </div>
+        }
+    </div>
+
+    <div class="col-12 col-lg-4">
+        <div class="border rounded-4 p-3 bg-white mb-3">
+            <div class="fw-bold mb-2">@deptName Checklist (Step-4)</div>
+
+            <div class="py-2 border-bottom">
+                <div class="fw-semibold">1) Verify documents</div>
+                <div class="text-muted small">Check required docs for @deptName.</div>
+            </div>
+            <div class="py-2 border-bottom">
+                <div class="fw-semibold">2) Record remarks</div>
+                <div class="text-muted small">Write clear objection notes if returned.</div>
+            </div>
+            <div class="py-2 border-bottom">
+                <div class="fw-semibold">3) Approve or Return</div>
+                <div class="text-muted small">Approve → Transfer Desk; Return → Owner/Dealer.</div>
+            </div>
+
+            @if (isFinance)
+            {
+                <div class="py-2 border-bottom">
+                    <div class="fw-semibold">4) Challan & Payment</div>
+                    <div class="text-muted small">Generate challan if due and confirm receipt.</div>
+                </div>
+            }
+
+            <div class="py-2">
+                <div class="fw-semibold">Next</div>
+                <div class="text-muted small">Transfer Desk will issue NDC call after all clearances.</div>
+            </div>
+
+            <div class="mt-3 d-grid gap-2">
+                <a class="btn btn-outline-secondary" href="#">Reports</a>
+                <a class="btn btn-primary" href="#">Process Next Case</a>
+            </div>
+        </div>
+
+        <div class="border rounded-4 p-3 bg-white">
+            <div class="fw-bold mb-2">Recent Activity</div>
+            @foreach (var x in activity)
+            {
+                <div class="py-2 border-bottom">
+                    <div class="small text-muted">@x.When</div>
+                    <div>@x.Text</div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<div class="mt-3 border rounded-4 p-3 bg-white">
+    <div class="fw-bold mb-1">After Step-4</div>
+    <div class="text-muted">
+        When all directorates approve, Transfer Desk will schedule NDC issuance call (Step-5).
+    </div>
+</div>

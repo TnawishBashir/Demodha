@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
+using System.Security.Claims;
 
 namespace Demodha.Areas.Identity.Pages.Account
 {
@@ -94,6 +95,8 @@ namespace Demodha.Areas.Identity.Pages.Account
 
             if (result.Succeeded)
             {
+                await AddOrUpdateThemeClaimAsync(user);
+
                 _logger.LogInformation("User logged in.");
                 return LocalRedirect(returnUrl);
             }
@@ -106,6 +109,35 @@ namespace Demodha.Areas.Identity.Pages.Account
 
             ModelState.AddModelError(string.Empty, "Invalid login attempt.");
             return Page();
+        }
+
+        private async Task AddOrUpdateThemeClaimAsync(ApplicationUser user)
+        {
+            var userType = user.UserType ?? 0;
+
+            var theme = userType switch
+            {
+                1 => "Owner",
+                2 => "Dealer",
+                3 => "TransferDesk",
+                4 => "Directorates",
+                _ => "Owner"
+            };
+
+            var claims = await _userManager.GetClaimsAsync(user);
+
+            var existingTheme = claims.FirstOrDefault(c => c.Type == "theme");
+            if (existingTheme != null)
+                await _userManager.RemoveClaimAsync(user, existingTheme);
+
+            var existingUserType = claims.FirstOrDefault(c => c.Type == "userType");
+            if (existingUserType != null)
+                await _userManager.RemoveClaimAsync(user, existingUserType);
+
+            await _userManager.AddClaimAsync(user, new Claim("theme", theme));
+            await _userManager.AddClaimAsync(user, new Claim("userType", userType.ToString()));
+
+            await _signInManager.RefreshSignInAsync(user);
         }
     }
 }

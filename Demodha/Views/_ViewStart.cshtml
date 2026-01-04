@@ -1,3 +1,17 @@
 ﻿@{
     Layout = "_Layout";
 }
+@{
+    var theme = User?.FindFirst("theme")?.Value;
+
+    theme ??= "Owner";
+
+    Layout = theme switch
+    {
+        "Owner" => "/Views/Shared/_Layout.Owner.cshtml",
+        "Dealer" => "/Views/Shared/_Layout.Dealer.cshtml",
+        "TransferDesk" => "/Views/Shared/_Layout.TransferDesk.cshtml",
+        "Directorates" => "/Views/Shared/_Layout.Directorates.cshtml",
+        _ => "/Views/Shared/_Layout.Owner.cshtml"
+    };
+}

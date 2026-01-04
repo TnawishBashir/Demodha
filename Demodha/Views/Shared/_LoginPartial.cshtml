@@ -1,29 +1,125 @@
-﻿@using Microsoft.AspNetCore.Identity
-@using Demodha.Data.Identity
+﻿@using Demodha.Data.Identity
 @using Microsoft.AspNetCore.Identity
 @inject SignInManager<ApplicationUser> SignInManager
 @inject UserManager<ApplicationUser> UserManager
 
+<style>
+    .auth-nav {
+        display: flex;
+        align-items: center;
+        gap: .6rem;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
 
-<ul class="navbar-nav">
-@if (SignInManager.IsSignedIn(User))
-{
-    <li class="nav-item">
-        <a  class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Manage/Index" title="Manage">Hello @User.Identity?.Name!</a>
-    </li>
-    <li class="nav-item">
-        <form  class="form-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
-            <button  type="submit" class="nav-link btn btn-link text-dark">Logout</button>
-        </form>
-    </li>
-}
-else
-{
-    <li class="nav-item">
-        <a class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Register">Register</a>
-    </li>
-    <li class="nav-item">
-        <a class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Login">Login</a>
-    </li>
-}
+    .auth-hello {
+        color: rgba(255,255,255,.92) !important;
+        font-weight: 600;
+        text-decoration: none;
+        padding: .35rem .6rem;
+        border-radius: 999px;
+        background: rgba(255,255,255,.08);
+        border: 1px solid rgba(255,255,255,.16);
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+    }
+
+        .auth-hello:hover {
+            background: rgba(255,255,255,.12);
+            color: #fff !important;
+        }
+
+    .auth-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        height: 36px;
+        padding: 0 .85rem;
+        border-radius: 999px;
+        font-weight: 700;
+        letter-spacing: .2px;
+        text-decoration: none;
+        border: 1px solid rgba(255,255,255,.20);
+        color: rgba(255,255,255,.95) !important;
+        background: rgba(255,255,255,.08);
+        transition: .15s ease;
+    }
+
+        .auth-btn:hover {
+            background: rgba(255,255,255,.14);
+            color: #fff !important;
+            transform: translateY(-1px);
+        }
+
+        .auth-btn.primary {
+            border-color: rgba(245,158,11,.40);
+            background: linear-gradient(180deg, rgba(245,158,11,.28), rgba(245,158,11,.14));
+            color: #fff !important;
+        }
+
+            .auth-btn.primary:hover {
+                background: linear-gradient(180deg, rgba(245,158,11,.36), rgba(245,158,11,.20));
+            }
+
+        .auth-btn.secondary {
+            border-color: rgba(59,130,246,.45);
+            background: linear-gradient(180deg, rgba(59,130,246,.22), rgba(59,130,246,.10));
+        }
+
+            .auth-btn.secondary:hover {
+                background: linear-gradient(180deg, rgba(59,130,246,.30), rgba(59,130,246,.14));
+            }
+
+    .auth-form {
+        margin: 0;
+    }
+
+        .auth-form button {
+            cursor: pointer;
+        }
+</style>
+
+<ul class="auth-nav">
+    @if (SignInManager.IsSignedIn(User))
+    {
+        <li class="nav-item">
+            <a class="auth-hello"
+               asp-area="Identity"
+               asp-page="/Account/Manage/Index"
+               title="Manage">
+                Hello @User.Identity?.Name!
+            </a>
+        </li>
+
+        <li class="nav-item">
+            <form class="auth-form"
+                  asp-area="Identity"
+                  asp-page="/Account/Logout"
+                  asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })"
+                  method="post">
+                <button type="submit" class="auth-btn primary" style="border:0;">
+                    Logout
+                </button>
+            </form>
+        </li>
+    }
+    else
+    {
+        <li class="nav-item">
+            <a class="auth-btn secondary"
+               asp-area="Identity"
+               asp-page="/Account/Register">
+                Register
+            </a>
+        </li>
+
+        <li class="nav-item">
+            <a class="auth-btn primary"
+               asp-area="Identity"
+               asp-page="/Account/Login">
+                Login
+            </a>
+        </li>
+    }
 </ul>

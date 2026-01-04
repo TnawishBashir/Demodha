@@ -1,0 +1,129 @@
+﻿@{
+    var title = ViewData["Title"] as string ?? "Directorates";
+}
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@title - Directorates</title>
+
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+
+    <style>
+        :root {
+            --brand: #7c3aed; /* Purple */
+            --brand2: #4f46e5; /* Indigo */
+            --bg: #0e0b18;
+            --card: rgba(255,255,255,.92);
+        }
+
+        body {
+            background: radial-gradient(1200px 700px at 20% 20%, rgba(124,58,237,.22), rgba(2,6,23,0) 55%), radial-gradient(900px 500px at 80% 60%, rgba(79,70,229,.18), rgba(2,6,23,0) 60%), var(--bg);
+            min-height: 100vh;
+        }
+
+        .topbar {
+            background: rgba(2,6,23,.55);
+            border-bottom: 1px solid rgba(255,255,255,.08);
+            backdrop-filter: blur(10px);
+        }
+
+        .brand {
+            font-weight: 900;
+            color: #fff;
+            text-decoration: none;
+        }
+
+            .brand small {
+                color: rgba(255,255,255,.75);
+                font-weight: 700;
+            }
+
+        .sidebar {
+            background: rgba(255,255,255,.06);
+            border: 1px solid rgba(255,255,255,.10);
+            border-radius: 16px;
+            backdrop-filter: blur(10px);
+            padding: 14px;
+            color: #fff;
+        }
+
+        .navlink {
+            display: block;
+            padding: 10px 12px;
+            border-radius: 12px;
+            color: rgba(255,255,255,.88);
+            text-decoration: none;
+        }
+
+            .navlink:hover {
+                background: rgba(255,255,255,.08);
+                color: #fff;
+            }
+
+            .navlink.active {
+                background: linear-gradient(135deg,var(--brand),var(--brand2));
+                color: #fff;
+                font-weight: 900;
+            }
+
+        .content-card {
+            background: var(--card);
+            border: 1px solid rgba(15,23,42,.10);
+            border-radius: 18px;
+            box-shadow: 0 18px 50px rgba(15,23,42,.18);
+            padding: 18px;
+        }
+
+        .badge-role {
+            background: rgba(124,58,237,.18);
+            border: 1px solid rgba(124,58,237,.30);
+            border-radius: 999px;
+            padding: 6px 10px;
+            color: #fff;
+            font-weight: 900;
+        }
+    </style>
+
+    @RenderSection("Styles", required: false)
+</head>
+<body>
+    <header class="topbar py-3">
+        <div class="container-fluid px-4 d-flex align-items-center justify-content-between">
+            <a class="brand" href="/">
+                DHA <small>Clearance Directorates</small>
+            </a>
+            <div class="d-flex align-items-center gap-3">
+                <span class="badge-role">CLEARANCE</span>
+                <partial name="_LoginPartial" />
+            </div>
+        </div>
+    </header>
+
+    <main class="container-fluid p-4">
+        <div class="row g-3">
+            <aside class="col-12 col-lg-3">
+                <div class="sidebar">
+                    <div class="fw-bold mb-2">Directorates Menu</div>
+                    <a class="navlink active" href="/Directorates/Inbox">Inbox</a>
+                    <a class="navlink" href="/Directorates/Clearance">Clearance Tasks</a>
+                    <a class="navlink" href="/Directorates/Remarks">Remarks</a>
+                    <a class="navlink" href="/Directorates/SLA">SLA Monitor</a>
+                    <a class="navlink" href="/Directorates/Reports">Reports</a>
+                </div>
+            </aside>
+
+            <section class="col-12 col-lg-9">
+                <div class="content-card">
+                    @RenderBody()
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    @RenderSection("Scripts", required: false)
+</body>
+</html>

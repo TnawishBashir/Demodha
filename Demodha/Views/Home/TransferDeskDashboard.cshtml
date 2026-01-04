@@ -1,0 +1,105 @@
+﻿@model Demodha.ViewModels.TransferDeskDashboardVM
+@using System.Linq
+@{
+    ViewData["Title"] = "Transfer Desk Dashboard";
+    Layout = "_Layout.TransferDesk";
+    string yesNo(bool b) => b ? "Done" : "Pending";
+    string badge(bool b) => b ? "bg-success" : "bg-secondary";
+}
+
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+    <div>
+        <h3 class="mb-1 fw-bold">Transfer Desk Dashboard</h3>
+        <div class="text-muted">
+            Step-3: Verify owner + dealer docs, verify e-Stamp, then send case to directorates for clearance.
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mb-3">
+    <div class="col-6 col-lg-3">
+        <div class="border rounded-4 p-3 bg-white">
+            <div class="text-muted">New from Dealer</div>
+            <div class="fs-3 fw-bold">@Model.NewFromDealer</div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="border rounded-4 p-3 bg-white">
+            <div class="text-muted">Pending e-Stamp</div>
+            <div class="fs-3 fw-bold">@Model.PendingEStamp</div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="border rounded-4 p-3 bg-white">
+            <div class="text-muted">Sent to Directorates</div>
+            <div class="fs-3 fw-bold">@Model.SentToDirectorates</div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="border rounded-4 p-3 bg-white">
+            <div class="text-muted">Returned</div>
+            <div class="fs-3 fw-bold">@Model.ReturnedToDealer</div>
+        </div>
+    </div>
+</div>
+
+<div class="border rounded-4 p-3 bg-white">
+    <div class="d-flex align-items-center justify-content-between mb-2">
+        <div class="fw-bold">Transfer Desk Queue</div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table align-middle mb-0">
+            <thead>
+                <tr class="text-muted">
+                    <th>App #</th>
+                    <th>Owner</th>
+                    <th>Dealer</th>
+                    <th>Plot / File</th>
+                    <th>Checks</th>
+                    <th style="width:170px;">Progress</th>
+                    <th class="text-end">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Applications == null || !Model.Applications.Any())
+                {
+                    <tr><td colspan="7" class="text-center text-muted py-4">No cases.</td></tr>
+                }
+                else
+                {
+                    foreach (var a in Model.Applications)
+                    {
+                        <tr>
+                            <td class="fw-semibold">@a.AppNo</td>
+                            <td>@a.OwnerName</td>
+                            <td>@a.DealerName</td>
+                            <td>@a.Plot</td>
+                            <td>
+                                <div class="d-flex flex-wrap gap-2">
+                                    <span class="badge @badge(a.HasOwnerDocs)">Owner Docs: @yesNo(a.HasOwnerDocs)</span>
+                                    <span class="badge @badge(a.HasChallan)">Challan: @yesNo(a.HasChallan)</span>
+                                    <span class="badge @badge(a.HasSellerConsent)">Seller Consent: @yesNo(a.HasSellerConsent)</span>
+                                    <span class="badge @badge(a.HasPurchaserConsent)">Purchaser Consent: @yesNo(a.HasPurchaserConsent)</span>
+                                    <span class="badge @badge(a.HasEStamp)">e-Stamp: @yesNo(a.HasEStamp)</span>
+                                </div>
+                                <div class="mt-2">
+                                    <span class="badge bg-@a.Badge">@a.Status</span>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="progress" style="height:10px;">
+                                    <div class="progress-bar" role="progressbar" style="width:@a.Progress%"></div>
+                                </div>
+                                <div class="small text-muted mt-1">@a.Progress% complete</div>
+                            </td>
+                            <td class="text-end">
+                                <a class="btn btn-sm btn-outline-primary" href="/TransferDesk/Applications/Open/@a.Id">Open</a>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
