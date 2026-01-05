@@ -22,6 +22,98 @@ public class ApplicationsController : Controller
         _env = env;
     }
 
+
+    [HttpGet("")]
+    public async Task<IActionResult> Index()
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrWhiteSpace(userId))
+            return Challenge();
+
+        var apps = await _db.NdcApplications
+            .AsNoTracking()
+            .Where(x => x.IsActive && x.CreatedByUserId == userId)
+            .OrderByDescending(x => x.UpdatedOn ?? x.CreatedOn)
+            .Select(x => new
+            {
+                x.Id,
+                x.CreatedOn,
+                x.UpdatedOn,
+                x.PlotOrFileNo,
+                x.Block,
+                x.SectorOrPhase,
+                x.CurrentStatus,
+                x.CurrentStage
+            })
+            .ToListAsync();
+
+        var appIds = apps.Select(a => a.Id).ToList();
+
+        var sellerNames = await _db.NdcParties
+            .AsNoTracking()
+            .Where(p => appIds.Contains(p.NdcApplicationId) && p.PartyType == NdcPartyType.Seller)
+            .Select(p => new { p.NdcApplicationId, p.FullName })
+            .ToListAsync();
+
+        var sellerMap = sellerNames
+            .GroupBy(x => x.NdcApplicationId)
+            .ToDictionary(g => g.Key, g => g.First().FullName ?? "");
+
+        var docs = await _db.NdcDocuments
+            .AsNoTracking()
+            .Where(d => appIds.Contains(d.NdcApplicationId))
+            .OrderBy(d => d.DocType)
+            .Select(d => new
+            {
+                d.NdcApplicationId,
+                d.DocType,
+                d.FileName,
+                d.FilePath
+            })
+            .ToListAsync();
+
+        var docsMap = docs
+            .GroupBy(d => d.NdcApplicationId)
+            .ToDictionary(
+                g => g.Key,
+                g => g.Select(x => new OwnerApplicationsIndexDocVM
+                {
+                    DocType = x.DocType,
+                    FileName = x.FileName ?? "",
+                    FilePath = x.FilePath
+                }).ToList()
+            );
+
+        var rows = apps.Select(a => new OwnerApplicationsIndexRowVM
+        {
+            Id = a.Id,
+            AppNo = $"NDC-{a.CreatedOn:yyyy}-{a.Id:D5}",
+            Plot = $"{a.PlotOrFileNo}, Block {a.Block} ({a.SectorOrPhase})",
+            SellerName = sellerMap.TryGetValue(a.Id, out var s) ? s : "",
+            Status = a.CurrentStatus.ToString(),
+            Stage = a.CurrentStage.ToString(),
+            Updated = (a.UpdatedOn ?? a.CreatedOn).ToLocalTime().ToString("MMM dd, yyyy"),
+            Badge = GetBadge(a.CurrentStatus),
+            Documents = docsMap.TryGetValue(a.Id, out var list) ? list : new List<OwnerApplicationsIndexDocVM>()
+        }).ToList();
+
+        var vm = new OwnerApplicationsIndexVM { Rows = rows };
+        return View("Index", vm);
+    }
+
+    private static string GetBadge(NdcStatus status) => status switch
+    {
+        NdcStatus.Draft => "secondary",
+        NdcStatus.Submitted => "info",
+        NdcStatus.UnderReview => "primary",
+        NdcStatus.Returned => "warning",
+        NdcStatus.Approved => "success",
+        NdcStatus.Completed => "dark",
+        NdcStatus.Rejected => "danger",
+        _ => "secondary"
+    };
+
+
     [HttpGet("Create")]
     public async Task<IActionResult> Create()
     {
@@ -38,14 +130,36 @@ public class ApplicationsController : Controller
     {
         vm.DealerOptions = await GetDealersFromUsersAsync();
 
-        if (!string.Equals(actionType, "submit", StringComparison.OrdinalIgnoreCase))
+        actionType = (actionType ?? "").Trim().ToLowerInvariant();
+        var isSubmit = actionType == "submit";
+        var isSave = actionType == "save";
+
+        if (!isSubmit && !isSave)
         {
-            ModelState.AddModelError("", "Invalid action. Please click Save Draft.");
+            ModelState.AddModelError("", "Invalid action. Please click Save Draft or Submit to Dealer.");
             return View(vm);
         }
 
         if (!ModelState.IsValid)
             return View(vm);
+
+        if (isSubmit)
+        {
+            if (vm.OwnerCnicCopy == null || vm.OwnerCnicCopy.Length == 0)
+                ModelState.AddModelError("", "CNIC Copy is required to submit.");
+
+            if (vm.Photo1 == null || vm.Photo1.Length == 0)
+                ModelState.AddModelError("", "Photo 1 is required to submit.");
+
+            if (vm.Photo2 == null || vm.Photo2.Length == 0)
+                ModelState.AddModelError("", "Photo 2 is required to submit.");
+
+            if (vm.ApplicationToSecretary == null || vm.ApplicationToSecretary.Length == 0)
+                ModelState.AddModelError("", "Application to Secretary is required to submit.");
+
+            if (!ModelState.IsValid)
+                return View(vm);
+        }
 
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (string.IsNullOrWhiteSpace(userId))
@@ -55,6 +169,8 @@ public class ApplicationsController : Controller
 
         try
         {
+            var now = DateTime.UtcNow;
+
             var app = new NdcApplication
             {
                 PlotOrFileNo = vm.PlotOrFileNo.Trim(),
@@ -64,17 +180,17 @@ public class ApplicationsController : Controller
                 DealerUserId = vm.DealerUserId,
                 Remarks = vm.Remarks?.Trim(),
 
-                CurrentStage = NdcStage.Dealer,
-                CurrentStatus = NdcStatus.Submitted,
+                CurrentStage = isSubmit ? NdcStage.Dealer : NdcStage.Owner,
+                CurrentStatus = isSubmit ? NdcStatus.Submitted : NdcStatus.Draft,
 
                 CreatedByUserId = userId,
-                CreatedOn = DateTime.UtcNow,
-                UpdatedOn = DateTime.UtcNow,
+                CreatedOn = now,
+                UpdatedOn = now,
                 IsActive = true
             };
 
             _db.NdcApplications.Add(app);
-            await _db.SaveChangesAsync(); 
+            await _db.SaveChangesAsync();
 
             _db.NdcParties.Add(new NdcParty
             {
@@ -82,7 +198,7 @@ public class ApplicationsController : Controller
                 PartyType = NdcPartyType.Seller,
                 FullName = vm.SellerName.Trim(),
                 CNIC = vm.SellerCnic.Trim(),
-                Phone = vm.SellerPhone.Trim(),
+                Phone = vm.SellerPhone?.Trim(),
                 Email = vm.SellerEmail?.Trim(),
                 Address = vm.SellerAddress?.Trim()
             });
@@ -105,8 +221,7 @@ public class ApplicationsController : Controller
             {
                 if (file == null || file.Length == 0) return;
 
-                ValidateFile(file, docType); 
-
+                ValidateFile(file, docType);
                 var saved = await SaveFileAsync(file, uploadRoot);
 
                 docsToInsert.Add(new NdcDocument
@@ -118,7 +233,7 @@ public class ApplicationsController : Controller
                     ContentType = file.ContentType,
                     FileSizeBytes = file.Length,
                     UploadedByUserId = userId,
-                    UploadedOn = DateTime.UtcNow
+                    UploadedOn = now
                 });
             }
 
@@ -151,25 +266,30 @@ public class ApplicationsController : Controller
             {
                 NdcApplicationId = app.Id,
                 FromStage = null,
-                ToStage = NdcStage.Dealer,
+                ToStage = app.CurrentStage,
                 FromStatus = null,
-                ToStatus = NdcStatus.Submitted,
+                ToStatus = app.CurrentStatus,
                 ActionByUserId = userId,
-                ActionOn = DateTime.UtcNow,
-                Remarks = "Submitted to Dealer."
+                ActionOn = now,
+                Remarks = isSubmit ? "Submitted to Dealer." : "Saved as Draft."
             });
-
 
             await _db.SaveChangesAsync();
             await tx.CommitAsync();
 
-            TempData["success"] = "Application saved as Draft successfully.";
+            TempData["success"] = isSubmit
+                ? "Application submitted to Dealer successfully."
+                : "Application saved as Draft successfully.";
+
+            if (!isSubmit)
+                return RedirectToAction("View", "Applications", new { id = app.Id });
+
             return RedirectToAction("OwnerDashboard", "Home");
         }
         catch (Exception ex)
         {
             await tx.RollbackAsync();
-            ModelState.AddModelError("", $"Unable to save draft. {ex.Message}");
+            ModelState.AddModelError("", $"Unable to save. {ex.Message}");
             return View(vm);
         }
     }

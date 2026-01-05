@@ -21,7 +21,6 @@ public class TransferDeskApplicationsController : Controller
     [HttpGet("Open/{id:long}")]
     public async Task<IActionResult> Open(long id)
     {
-        // must be transfer desk user
         var userType = User.FindFirst("userType")?.Value;
         if (userType != "3") return Forbid();
 
@@ -33,7 +32,6 @@ public class TransferDeskApplicationsController : Controller
 
         if (app == null) return NotFound();
 
-        // ensure it is at TransferDesk stage
         if (app.CurrentStage != NdcStage.TransferDesk)
             return Forbid();
 
@@ -59,8 +57,6 @@ public class TransferDeskApplicationsController : Controller
             return RedirectToAction(nameof(Open), new { id });
         }
 
-        // TODO: your SaveFileAsync/EnsureUploadFolder methods same as owner flow
-        // Here: we just store dummy path for now
         var doc = new NdcDocument
         {
             NdcApplicationId = id,
@@ -113,7 +109,6 @@ public class TransferDeskApplicationsController : Controller
 
         if (app == null) return NotFound();
 
-        // Validate required docs (Step-3)
         bool hasOwnerDocs =
             app.Documents.Any(d => d.DocType == NdcDocumentType.SellerCnicCopy) &&
             app.Documents.Any(d => d.DocType == NdcDocumentType.Photo1) &&
@@ -138,7 +133,6 @@ public class TransferDeskApplicationsController : Controller
 
         try
         {
-            // create clearance rows if not exist (Record, Legal, Land, Plans, BC, Finance)
             var existing = await _db.NdcClearances
                 .Where(x => x.NdcApplicationId == id)
                 .Select(x => x.Department)
@@ -152,7 +146,6 @@ public class TransferDeskApplicationsController : Controller
                 {
                     NdcApplicationId = id,
                     Department = dept,
-                    //Status = NdcClearanceStatus.Pending,
                     Remarks = "Sent by Transfer Desk",
                 });
             }

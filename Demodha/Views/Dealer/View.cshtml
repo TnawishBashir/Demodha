@@ -1,0 +1,269 @@
+﻿@model Demodha.ViewModels.NdcApplicationViewVM
+@using Demodha.Models
+
+@{
+    ViewData["Title"] = "View Application";
+    Layout = "_Layout.Dealer";
+
+    // ✅ local variables (NOT expression-bodied property)
+    var hasPurchaser = Model.Purchaser != null;
+
+    bool HasDoc(NdcDocumentType t) => Model.Documents?.Any(d => d.DocType == t) == true;
+
+    var okChallan = HasDoc(NdcDocumentType.PaymentChallanForm);
+    var okSellerConsent = HasDoc(NdcDocumentType.SellerConsentForm);
+    var okPurchaserConsent = !hasPurchaser || HasDoc(NdcDocumentType.PurchaserConsentForm);
+
+    var canSubmit = okChallan && okSellerConsent && okPurchaserConsent;
+}
+
+@functions {
+    public string BadgeOfStatus(NdcStatus s)
+    {
+        return s switch
+        {
+            NdcStatus.Draft => "secondary",
+            NdcStatus.Submitted => "info",
+            NdcStatus.UnderReview => "primary",
+            NdcStatus.Returned => "warning",
+            NdcStatus.Approved => "success",
+            NdcStatus.Completed => "dark",
+            NdcStatus.Rejected => "danger",
+            _ => "secondary"
+        };
+    }
+
+    public string DocName(NdcDocumentType t)
+    {
+        return t switch
+        {
+            NdcDocumentType.SellerCnicCopy => "CNIC Copy (Seller)",
+            NdcDocumentType.Photo1 => "Photo 1",
+            NdcDocumentType.Photo2 => "Photo 2",
+            NdcDocumentType.ApplicationToSecretary => "Application to Secretary DHAG",
+            NdcDocumentType.PaymentChallanForm => "Payment Challan Form",
+            NdcDocumentType.SellerConsentForm => "Seller Consent Form",
+            NdcDocumentType.PurchaserConsentForm => "Purchaser Consent Form",
+            NdcDocumentType.EStampPaper => "e-Stamp Paper",
+            NdcDocumentType.PaymentReceipt => "Payment Receipt",
+            _ => t.ToString()
+        };
+    }
+}
+
+
+@if (TempData["success"] != null)
+{
+    <div class="alert alert-success rounded-4">@TempData["success"]</div>
+}
+@if (TempData["error"] != null)
+{
+    <div class="alert alert-danger rounded-4">@TempData["error"]</div>
+}
+
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+    <div>
+        <h3 class="mb-1 fw-bold">Dealer - Application</h3>
+        <div class="text-muted">
+            Step-2: Attach Challan + Consent Forms, then submit to Transfer Desk.
+        </div>
+    </div>
+    <div class="d-flex gap-2">
+        <a class="btn btn-outline-secondary" href="/Dealer/Inbox">Back to Inbox</a>
+        <a class="btn btn-outline-secondary" href="/Dealer/Submitted">Submitted Cases</a>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-12 col-lg-8">
+        <div class="border rounded-4 p-3 bg-white mb-3">
+            <div class="d-flex align-items-start justify-content-between">
+                <div>
+                    <div class="fw-bold fs-5">@Model.AppNo</div>
+                    <div class="text-muted">
+                        Plot/File: <b>@Model.PlotOrFileNo</b>, Block <b>@Model.Block</b> (@Model.SectorOrPhase)
+                    </div>
+                    @if (!string.IsNullOrWhiteSpace(Model.SocietyOrScheme))
+                    {
+                        <div class="text-muted">Scheme: @Model.SocietyOrScheme</div>
+                    }
+                </div>
+                <div class="text-end">
+                    <span class="badge bg-@BadgeOfStatus(Model.CurrentStatus)">@Model.CurrentStatus</span>
+                    <div class="small text-muted mt-1">Stage: @Model.CurrentStage</div>
+                </div>
+            </div>
+
+            <hr />
+
+            <div class="row g-3">
+                <div class="col-12 col-md-6">
+                    <div class="fw-bold mb-1">Seller (Owner)</div>
+                    <div><b>@Model.Seller?.FullName</b></div>
+                    <div class="text-muted small">CNIC: @Model.Seller?.CNIC</div>
+                    <div class="text-muted small">Phone: @Model.Seller?.Phone</div>
+                </div>
+
+                <div class="col-12 col-md-6">
+                    <div class="fw-bold mb-1">Purchaser</div>
+                    @if (Model.Purchaser == null)
+                    {
+                        <div class="text-muted">No purchaser added yet.</div>
+                    }
+                    else
+                    {
+                        <div><b>@Model.Purchaser.FullName</b></div>
+                        <div class="text-muted small">CNIC: @Model.Purchaser.CNIC</div>
+                        <div class="text-muted small">Phone: @Model.Purchaser.Phone</div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="border rounded-4 p-3 bg-white">
+            <div class="fw-bold mb-2">Documents</div>
+
+            @if (Model.Documents == null || !Model.Documents.Any())
+            {
+                <div class="text-muted">No documents uploaded yet.</div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table align-middle mb-0">
+                        <thead>
+                            <tr class="text-muted">
+                                <th>Type</th>
+                                <th>File</th>
+                                <th>Uploaded</th>
+                                <th class="text-end">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var d in Model.Documents.OrderBy(x => x.DocType))
+                            {
+                                <tr>
+                                    <td class="fw-semibold">@DocName(d.DocType)</td>
+                                    <td>
+                                        @d.FileName
+                                        <div class="text-muted small">@d.ContentType</div>
+                                    </td>
+                                    <td class="text-muted small">
+                                        @d.UploadedOn.ToString("dd MMM yyyy, hh:mm tt")
+                                    </td>
+                                    <td class="text-end">
+                                        @* Update this URL according to your download endpoint *@
+                                        <a class="btn btn-sm btn-outline-secondary" href="@d.FilePath" target="_blank">Open</a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+
+        <div class="border rounded-4 p-3 bg-white mt-3">
+            <div class="fw-bold mb-2">Timeline</div>
+
+            @if (Model.Timeline == null || !Model.Timeline.Any())
+            {
+                <div class="text-muted">No history yet.</div>
+            }
+            else
+            {
+                foreach (var h in Model.Timeline.Take(15))
+                {
+                    <div class="py-2 border-bottom">
+                        <div class="small text-muted">@h.ActionOn.ToString("dd MMM yyyy, hh:mm tt")</div>
+                        <div>
+                            <span class="badge bg-secondary">@h.FromStage</span>
+                            →
+                            <span class="badge bg-primary">@h.ToStage</span>
+                            <span class="ms-2 badge bg-@BadgeOfStatus(h.ToStatus)">@h.ToStatus</span>
+                        </div>
+                        @if (!string.IsNullOrWhiteSpace(h.Remarks))
+                        {
+                            <div class="text-muted">@h.Remarks</div>
+                        }
+                    </div>
+                }
+            }
+        </div>
+    </div>
+
+    <div class="col-12 col-lg-4">
+        <div class="border rounded-4 p-3 bg-white mb-3">
+            <div class="fw-bold mb-2">Step-2 Checklist</div>
+
+            <div class="d-flex flex-column gap-2">
+                <div class="d-flex justify-content-between">
+                    <span>Payment Challan</span>
+                    <span class="badge @(okChallan ? "bg-success" : "bg-secondary")">@(okChallan ? "Done" : "Pending")</span>
+                </div>
+
+                <div class="d-flex justify-content-between">
+                    <span>Seller Consent</span>
+                    <span class="badge @(okSellerConsent ? "bg-success" : "bg-secondary")">@(okSellerConsent ? "Done" : "Pending")</span>
+                </div>
+
+                <div class="d-flex justify-content-between">
+                    <span>Purchaser Consent</span>
+                    <span class="badge @(okPurchaserConsent ? "bg-success" : "bg-secondary")">@(okPurchaserConsent ? "Done" : "Pending")</span>
+                </div>
+            </div>
+
+            <hr />
+
+            @* <div class="fw-bold mb-2">Upload Documents (Dealer)</div>
+
+            <form class="mb-2" method="post" enctype="multipart/form-data" action="/Dealer/Applications/UploadDoc">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" value="@Model.Id" />
+                <input type="hidden" name="docType" value="@((byte)NdcDocumentType.PaymentChallanForm)" />
+                <input type="file" name="file" class="form-control" />
+                <button type="submit" class="btn btn-outline-primary w-100 mt-2">Upload Challan</button>
+            </form>
+
+            <form class="mb-2" method="post" enctype="multipart/form-data" action="/Dealer/Applications/UploadDoc">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" value="@Model.Id" />
+                <input type="hidden" name="docType" value="@((byte)NdcDocumentType.SellerConsentForm)" />
+                <input type="file" name="file" class="form-control" />
+                <button type="submit" class="btn btn-outline-primary w-100 mt-2">Upload Seller Consent</button>
+            </form>
+
+            <form method="post" enctype="multipart/form-data" action="/Dealer/Applications/UploadDoc">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" value="@Model.Id" />
+                <input type="hidden" name="docType" value="@((byte)NdcDocumentType.PurchaserConsentForm)" />
+                <input type="file" name="file" class="form-control" />
+                <button type="submit" class="btn btn-outline-primary w-100 mt-2">Upload Purchaser Consent</button>
+            </form>
+ *@
+            @* <hr />
+
+            <form method="post" action="/Dealer/Applications/SubmitToTransferDesk/@Model.Id">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-success w-100" @(canSubmit ? "" : "disabled")>
+                    Submit to Transfer Desk
+                </button>
+
+                @if (!canSubmit)
+                {
+                    <div class="text-danger small mt-2">
+                        Missing required documents. Upload Challan + Consent forms first.
+                    </div>
+                }
+            </form> *@
+        </div>
+
+        <div class="border rounded-4 p-3 bg-white">
+            <div class="fw-bold mb-2">Quick Links</div>
+            <div class="d-grid gap-2">
+                <a class="btn btn-outline-secondary" href="/Dealer/Inbox">Open Inbox</a>
+                <a class="btn btn-outline-secondary" href="/Dealer/Submitted">Submitted Cases</a>
+            </div>
+        </div>
+    </div>
+</div>

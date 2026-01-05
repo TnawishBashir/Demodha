@@ -13,8 +13,8 @@
 
     <style>
         :root {
-            --brand: #7c3aed; /* Purple */
-            --brand2: #4f46e5; /* Indigo */
+            --brand: #7c3aed;
+            --brand2: #4f46e5; 
             --bg: #0e0b18;
             --card: rgba(255,255,255,.92);
         }
@@ -92,9 +92,15 @@
 <body>
     <header class="topbar py-3">
         <div class="container-fluid px-4 d-flex align-items-center justify-content-between">
-            <a class="brand" href="/">
-                DHA <small>Clearance Directorates</small>
+            <a class="brand d-flex align-items-center gap-2" href="/">
+                <img src="~/images/logotxt.png" asp-append-version="true"
+                     alt="DHA Logo"
+                     style="height:34px; width:auto; border-radius:6px;" />
+                <span>
+                    <small>Clearance Directorates</small>
+                </span>
             </a>
+      
             <div class="d-flex align-items-center gap-3">
                 <span class="badge-role">CLEARANCE</span>
                 <partial name="_LoginPartial" />

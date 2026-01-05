@@ -13,8 +13,8 @@
 
     <style>
         :root {
-            --brand: #16a34a; /* Green */
-            --brand2: #22c55e; /* Light green */
+            --brand: #16a34a;
+            --brand2: #22c55e; 
             --bg: #08150f;
             --card: rgba(255,255,255,.92);
         }
@@ -92,8 +92,14 @@
 <body>
     <header class="topbar py-3">
         <div class="container-fluid px-4 d-flex align-items-center justify-content-between">
-            <a class="brand" href="/">
-                DHA <small>Dealer</small>
+            <a class="brand d-flex align-items-center gap-2" href="/">
+                <img src="~/images/logotxt.png" asp-append-version="true"
+                     alt="DHA Logo"
+                     style="height:34px; width:auto; border-radius:6px;" />
+
+                <span>
+                    <small>Dealer</small>
+                </span>
             </a>
             <div class="d-flex align-items-center gap-3">
                 <span class="badge-role">STEP-2</span>
@@ -108,10 +114,8 @@
                 <div class="sidebar">
                     <div class="fw-bold mb-2">Dealer Menu</div>
                     <a class="navlink active" href="/Dealer/Dashboard">Dashboard</a>
-                    <a class="navlink" href="/Dealer/Leads">Leads</a>
-                    <a class="navlink" href="/Dealer/Transfers">Transfers</a>
-                    <a class="navlink" href="/Dealer/Commission">Commission</a>
-                    <a class="navlink" href="/Dealer/Reports">Reports</a>
+                    <a class="navlink" href="#">Transfers</a>
+                    <a class="navlink" href="#">Reports</a>
                 </div>
             </aside>
 

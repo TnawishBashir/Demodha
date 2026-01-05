@@ -13,8 +13,8 @@
 
     <style>
         :root {
-            --brand: #f59e0b; /* Amber */
-            --brand2: #fb7185; /* Rose-ish accent */
+            --brand: #f59e0b; 
+            --brand2: #fb7185; 
             --bg: #14110a;
             --card: rgba(255,255,255,.92);
         }
@@ -92,8 +92,13 @@
 <body>
     <header class="topbar py-3">
         <div class="container-fluid px-4 d-flex align-items-center justify-content-between">
-            <a class="brand" href="/">
-                DHA <small>Transfer Desk / T&amp;R</small>
+            <a class="brand d-flex align-items-center gap-2" href="/">
+                <img src="~/images/logotxt.png" asp-append-version="true"
+                     alt="DHA Logo"
+                     style="height:34px; width:auto; border-radius:6px;" />
+                <span>
+                    <small>Transfer Desk / T&amp;R</small>
+                </span>
             </a>
             <div class="d-flex align-items-center gap-3">
                 <span class="badge-role">TRANSFER</span>
@@ -108,10 +113,9 @@
                 <div class="sidebar">
                     <div class="fw-bold mb-2">Transfer Desk Menu</div>
                     <a class="navlink active" href="/TransferDesk/Queue">Transfer Queue</a>
-                    <a class="navlink" href="/TransferDesk/Approvals">Approvals</a>
-                    <a class="navlink" href="/TransferDesk/Objections">Objections</a>
-                    <a class="navlink" href="/TransferDesk/History">History</a>
-                    <a class="navlink" href="/TransferDesk/Reports">Reports</a>
+                    <a class="navlink" href="#">Approvals</a>
+                    <a class="navlink" href="#">Objections</a>
+                    <a class="navlink" href="#">History</a>
                 </div>
             </aside>
 

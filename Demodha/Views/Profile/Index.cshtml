@@ -1,0 +1,54 @@
+﻿@model Demodha.ViewModels.UserProfileVM
+@{
+    ViewData["Title"] = "My Profile";
+    Layout = "_Layout.Owner";  
+}
+
+@if (TempData["success"] != null)
+{
+    <div class="alert alert-success rounded-4">@TempData["success"]</div>
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h3 class="fw-bold mb-1">My Profile</h3>
+        <div class="text-muted">Update your personal details.</div>
+    </div>
+</div>
+
+<form method="post" class="row g-3">
+    @Html.AntiForgeryToken()
+
+    <div class="col-12 col-md-6">
+        <label class="form-label">First Name</label>
+        <input asp-for="FirstName" class="form-control" />
+        <span asp-validation-for="FirstName" class="text-danger small"></span>
+    </div>
+
+    <div class="col-12 col-md-6">
+        <label class="form-label">Last Name</label>
+        <input asp-for="LastName" class="form-control" />
+        <span asp-validation-for="LastName" class="text-danger small"></span>
+    </div>
+
+    <div class="col-12 col-md-6">
+        <label class="form-label">Email</label>
+        <input asp-for="Email" class="form-control" readonly />
+        <div class="text-muted small">Email change is disabled here (can be enabled later).</div>
+    </div>
+
+    <div class="col-12 col-md-6">
+        <label class="form-label">Phone</label>
+        <input asp-for="PhoneNumber" class="form-control" />
+        <span asp-validation-for="PhoneNumber" class="text-danger small"></span>
+    </div>
+
+    <div class="col-12">
+        <button type="submit" class="btn btn-primary">Save Changes</button>
+        <a class="btn btn-outline-secondary" href="/Home/OwnerDashboard">Back</a>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

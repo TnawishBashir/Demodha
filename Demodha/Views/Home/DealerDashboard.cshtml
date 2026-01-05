@@ -69,7 +69,6 @@
 </div>
 
 @{
-    // Only show dealer-stage cases in the pending queue
     var pending = Model.Applications
         .Where(a => a.Status != "Submitted to Transfer Desk")
         .ToList();
@@ -176,7 +175,7 @@
             </div>
 
             <div class="mt-3 d-grid gap-2">
-                <a class="btn btn-outline-secondary" href="/Dealer/Forms">Download Forms</a>
+               @*  <a class="btn btn-outline-secondary" href="/Dealer/Forms">Download Forms</a> *@
                 <a class="btn btn-primary" href="/Dealer/Inbox">Process Next Case</a>
             </div>
         </div>

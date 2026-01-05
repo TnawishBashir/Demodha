@@ -1,0 +1,109 @@
+﻿@model Demodha.ViewModels.OwnerApplicationsIndexVM
+@using Demodha.Models
+@using System.Linq
+
+@{
+    ViewData["Title"] = "My Applications";
+    Layout = "_Layout.Owner";
+}
+
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+    <div>
+        <h3 class="mb-1 fw-bold">My Applications</h3>
+        <div class="text-muted">All NDC applications you created + uploaded documents.</div>
+    </div>
+
+    <div class="d-flex gap-2">
+        <a class="btn btn-primary" href="/Owner/Applications/Create">+ New Application</a>
+    </div>
+</div>
+
+<div class="border rounded-4 p-3 bg-white">
+    <div class="table-responsive">
+        <table class="table align-middle mb-0">
+            <thead>
+                <tr class="text-muted">
+                    <th style="width:160px;">App #</th>
+                    <th>Plot / File</th>
+                    <th>Seller</th>
+                    <th>Status</th>
+                    <th style="width:160px;">Updated</th>
+                    <th style="width:250px;">Documents</th>
+                    <th class="text-end" style="width:210px;">Action</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                @if (Model.Rows == null || !Model.Rows.Any())
+                {
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-4">
+                            No applications found. Click <b>New Application</b> to create your first NDC request.
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    foreach (var a in Model.Rows)
+                    {
+                        var docs = a.Documents ?? new List<Demodha.ViewModels.OwnerApplicationsIndexDocVM>();
+
+                        <tr>
+                            <td class="fw-semibold">@a.AppNo</td>
+                            <td>
+                                <div class="fw-semibold">@a.Plot</div>
+                                <div class="small text-muted">Stage: @a.Stage</div>
+                            </td>
+                            <td>@a.SellerName</td>
+                            <td>
+                                <span class="badge bg-@a.Badge">@a.Status</span>
+                            </td>
+                            <td>@a.Updated</td>
+
+                            <td>
+                                @if (!docs.Any())
+                                {
+                                    <span class="text-muted small">No documents</span>
+                                }
+                                else
+                                {
+                                    <div class="d-flex flex-column gap-1">
+                                        @foreach (var d in docs)
+                                        {
+                                            <div class="d-flex justify-content-between gap-2">
+                                                <span class="small">@d.DocType</span>
+
+                                                @if (!string.IsNullOrWhiteSpace(d.FilePath))
+                                                {
+                                                    <a class="small text-decoration-none" target="_blank" href="@d.FilePath">View</a>
+                                                }
+                                                else
+                                                {
+                                                    <span class="small text-muted">N/A</span>
+                                                }
+                                            </div>
+                                        }
+                                    </div>
+                                }
+                            </td>
+
+                            <td class="text-end">
+                                <div class="d-flex justify-content-end gap-2 flex-wrap">
+                                    @* <a class="btn btn-sm btn-outline-secondary"
+                                       href="/Owner/Applications/UploadDocs/@a.Id">
+                                        Upload Docs
+                                    </a> *@
+
+                                    <a class="btn btn-sm btn-outline-primary"
+                                       href="/Owner/Applications/View/@a.Id">
+                                        Open
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

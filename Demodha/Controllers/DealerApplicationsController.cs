@@ -21,11 +21,9 @@ public class DealerApplicationsController : Controller
         _env = env;
     }
 
-    // GET: /Dealer/Applications/Open/5
     [HttpGet("Open/{id:long}")]
     public async Task<IActionResult> Open(long id)
     {
-        // Must be Dealer
         if (GetUserTypeFromClaims() != 2) return Forbid();
 
         var dealerUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -62,7 +60,6 @@ public class DealerApplicationsController : Controller
         return View("Open", vm);
     }
 
-    // POST: /Dealer/Applications/Open
     [HttpPost("Open")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Open(DealerApplicationStep2VM vm, string actionType)
@@ -78,7 +75,6 @@ public class DealerApplicationsController : Controller
 
         if (app == null) return NotFound();
 
-        // re-load flags for view in case of validation errors
         async Task ReloadFlagsAsync()
         {
             var docs = await _db.NdcDocuments.AsNoTracking()
@@ -106,7 +102,6 @@ public class DealerApplicationsController : Controller
             return View("Open", vm);
         }
 
-        // If SUBMIT -> enforce required docs
         var hasPurchaser = app.Parties.Any(p => p.PartyType == NdcPartyType.Purchaser);
 
         if (isSubmit)
@@ -133,11 +128,9 @@ public class DealerApplicationsController : Controller
         await using var tx = await _db.Database.BeginTransactionAsync();
         try
         {
-            // Dealer is now working on the file
             if (app.CurrentStage != NdcStage.Dealer)
                 app.CurrentStage = NdcStage.Dealer;
 
-            // Upload docs (if provided)
             var uploadRoot = EnsureUploadFolder(app.Id);
 
             if (vm.PaymentChallan != null)
@@ -151,7 +144,6 @@ public class DealerApplicationsController : Controller
 
             if (isSubmit)
             {
-                // ✅ Move to TransferDesk
                 var fromStage = app.CurrentStage;
                 var fromStatus = app.CurrentStatus;
 
@@ -179,7 +171,6 @@ public class DealerApplicationsController : Controller
             }
             else
             {
-                // ✅ Save dealer draft
                 var fromStage = app.CurrentStage;
                 var fromStatus = app.CurrentStatus;
 
@@ -215,7 +206,6 @@ public class DealerApplicationsController : Controller
         }
     }
 
-    // ---------- helpers ----------
 
     private int GetUserTypeFromClaims()
     {
@@ -238,8 +228,7 @@ public class DealerApplicationsController : Controller
 
     private async Task SaveDealerDocAsync(long appId, IFormFile file, NdcDocumentType docType, string uploadRoot, string uploadedByUserId)
     {
-        // Basic validation (adjust as you like)
-        if (file.Length > 10 * 1024 * 1024) // 10MB
+        if (file.Length > 10 * 1024 * 1024) 
             throw new InvalidOperationException("File size must be <= 10MB.");
 
         var ext = Path.GetExtension(file.FileName);
@@ -251,7 +240,6 @@ public class DealerApplicationsController : Controller
 
         var relativePath = $"/uploads/ndc/{appId}/{safeName}";
 
-        // remove old same doc if exists (optional)
         var old = await _db.NdcDocuments
             .FirstOrDefaultAsync(d => d.NdcApplicationId == appId && d.DocType == docType);
 

@@ -104,9 +104,16 @@
 <body>
     <header class="topbar py-3">
         <div class="container-fluid px-4 d-flex align-items-center justify-content-between">
-            <a class="brand" href="/">
-                DHA <small>Owner / Seller</small>
+            <a class="brand d-flex align-items-center gap-2" href="/">
+                <img src="~/images/logotxt.png" asp-append-version="true"
+                     alt="DHA Logo"
+                     style="height:34px; width:auto; border-radius:6px;" />
+
+                <span>
+                    <small>Owner / Seller</small>
+                </span>
             </a>
+
             <div class="d-flex align-items-center gap-3">
                 <span class="badge-role">STEP-1</span>
                 <partial name="_LoginPartial" />
@@ -118,17 +125,13 @@
         <div class="row g-3">
             <aside class="col-12 col-lg-3">
                 <div class="sidebar">
-                    <div class="fw-bold mb-2">Owner Menu</div>
+                    <div class="fw-bold mb-2">Menu</div>
                     <a class="navlink active"
                        asp-controller="Home"
                        asp-action="OwnerDashboard">
                         Dashboard
                     </a>
-
                     <a class="navlink" href="/Owner/Applications">Applications</a>
-                    <a class="navlink" href="#">Payments</a>
-                    <a class="navlink" href="#">Documents</a>
-                    <a class="navlink" href="#">Support</a>
                 </div>
             </aside>
 

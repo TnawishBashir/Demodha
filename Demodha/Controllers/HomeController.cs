@@ -244,12 +244,11 @@ public class HomeController : Controller
     public async Task<IActionResult> TransferDeskDashboard()
     {
         var userType = GetUserTypeFromClaims();
-        if (userType != 3) // TransferDesk userType
+        if (userType != 3) 
             return Forbid();
 
         var docsQ = _db.NdcDocuments.AsNoTracking();
 
-        // TransferDesk queue = applications that dealer has submitted to transfer desk
         var q = _db.NdcApplications
             .AsNoTracking()
             .Where(x => x.IsActive && x.CurrentStage == NdcStage.TransferDesk);
@@ -257,17 +256,14 @@ public class HomeController : Controller
         var newFromDealer = await q.CountAsync(x => x.CurrentStatus == NdcStatus.Submitted);
         var returnedToDealer = await q.CountAsync(x => x.CurrentStatus == NdcStatus.Returned);
 
-        // Pending e-stamp (submitted/under review but no estamp)
         var pendingEStamp = await q.CountAsync(x =>
             (x.CurrentStatus == NdcStatus.Submitted || x.CurrentStatus == NdcStatus.UnderReview) &&
             !docsQ.Any(d => d.NdcApplicationId == x.Id && d.DocType == NdcDocumentType.EStampPaper));
 
-        // Sent to directorates = stage MiscDirectorates (or you can mark status UnderReview + stage MiscDirectorates)
         var sentToDirectorates = await _db.NdcApplications
             .AsNoTracking()
             .CountAsync(x => x.IsActive && x.CurrentStage == NdcStage.MiscDirectorates);
 
-        // Grid
         var apps = await q
             .OrderByDescending(x => x.UpdatedOn ?? x.CreatedOn)
             .Take(30)
